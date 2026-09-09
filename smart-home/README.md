@@ -5,6 +5,8 @@
 ## 已實作
 
 - Three.js 真正 3D 場景：旋轉、縮放、俯視與視角重設。
+- Matter 窗簾模擬：兩扇窗同步開合、0–100% 目標位置、中途停止、離線暫停；UI 的 100% 表示全開，控制 adapter 須轉換設備端座標。
+- 空調模擬：電源、冷氣/暖氣/送風、16–30°C 設定、風速、出風動畫及逐步變化的室溫。
 - Google Nest Hub 示意模型與模擬音量、設備入口。
 - 清淨機：開關、1–100% 風速、三個快捷風速、隨風速呈現的氣流與模擬 PM2.5 變化。
 - 掃地機器人：開始、暫停、繼續、回充；約 70 秒的預設展示路線與位置、進度更新。
@@ -49,3 +51,5 @@ Google 官方支援表列出 Matter 空氣清淨機與掃地機器人；實際�
 - https://support.google.com/googlehome/answer/12391458?hl=en
 
 Google Home APIs 的原生平台 SDK 是未來整合的候選入口。瀏覽器中的 3D 畫面不等於可直接連線 Nest Hub 或發送任意 Matter 指令。
+
+新增設備依 Google Home Home APIs 的 Room Air Conditioner 與 Window Covering 類型設計控制概念，但不表示所有 Google Home 控制入口或照片中的實體產品支援這些能力。真實接入須驗證設備/橋接器、韌體與可用 traits。
