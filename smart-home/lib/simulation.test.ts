@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {initialState,applyCommand,tick,pointOnRoute} from './simulation.ts';
+const started=applyCommand(initialState,{device:'vacuum',action:'start'});
+const moving=tick(started,2);assert.ok(moving.vacuum.route>0);
+const paused=applyCommand(moving,{device:'vacuum',action:'pause'});assert.equal(tick(paused,2).vacuum.route,paused.vacuum.route);
+let returning=applyCommand(paused,{device:'vacuum',action:'dock'});for(let i=0;i<12;i++)returning=tick(returning,2);assert.equal(returning.vacuum.mode,'docked');assert.deepEqual(pointOnRoute(returning.vacuum.route),[1.68,.75]);
+let done=started;for(let i=0;i<40;i++)done=tick(done,2);assert.equal(done.vacuum.mode,'docked');assert.equal(done.vacuum.progress,100);
+const offline={...started,offline:'vacuum' as const};assert.equal(tick(offline,2).vacuum.route,offline.vacuum.route);assert.throws(()=>applyCommand(offline,{device:'vacuum',action:'dock'}));
+assert.throws(()=>applyCommand(initialState,{device:'hub',action:'power',value:true}));assert.throws(()=>applyCommand(initialState,{device:'purifier',action:'fan',value:NaN}));assert.throws(()=>applyCommand(initialState,{device:'purifier',action:'fan',value:101}));
+const off=applyCommand(initialState,{device:'purifier',action:'power',value:false});assert.equal(off.purifier.on,false);assert.ok(tick(off,2).purifier.pm25>off.purifier.pm25);assert.ok(tick(initialState,2).purifier.pm25<initialState.purifier.pm25);
+assert.equal(initialState.vacuum.mode,'docked');console.log('Simulation: lifecycle, pause, return, completion, offline, command validation and air response passed.');
