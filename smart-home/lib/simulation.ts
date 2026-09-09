@@ -27,3 +27,9 @@ export function tick(s:SimState,seconds:number):SimState{
  return {...s,vacuum:v,purifier:{...s.purifier,pm25}};
 }
 export const modeLabels:Record<VacuumMode,string>={docked:'充電座待命',cleaning:'清掃中',paused:'已暫停',returning:'返回充電座'};
+
+// Capture elapsed time before enqueueing: React may defer evaluating the updater.
+export function createSimulationTimer(now:()=>number,enqueue:(update:(state:SimState)=>SimState)=>void){
+ let previous=now();
+ return ()=>{const current=now();const elapsed=(current-previous)/1000;previous=current;enqueue(state=>tick(state,elapsed));};
+}

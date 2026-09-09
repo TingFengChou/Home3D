@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initialState,applyCommand,tick,pointOnRoute} from './simulation.ts';
+import {initialState,applyCommand,tick,pointOnRoute,createSimulationTimer} from './simulation.ts';
 const started=applyCommand(initialState,{device:'vacuum',action:'start'});
 const moving=tick(started,2);assert.ok(moving.vacuum.route>0);
 const paused=applyCommand(moving,{device:'vacuum',action:'pause'});assert.equal(tick(paused,2).vacuum.route,paused.vacuum.route);
@@ -9,3 +9,12 @@ const offline={...started,offline:'vacuum' as const};assert.equal(tick(offline,2
 assert.throws(()=>applyCommand(initialState,{device:'hub',action:'power',value:true}));assert.throws(()=>applyCommand(initialState,{device:'purifier',action:'fan',value:NaN}));assert.throws(()=>applyCommand(initialState,{device:'purifier',action:'fan',value:101}));
 const off=applyCommand(initialState,{device:'purifier',action:'power',value:false});assert.equal(off.purifier.on,false);assert.ok(tick(off,2).purifier.pm25>off.purifier.pm25);assert.ok(tick(initialState,2).purifier.pm25<initialState.purifier.pm25);
 assert.equal(initialState.vacuum.mode,'docked');console.log('Simulation: lifecycle, pause, return, completion, offline, command validation and air response passed.');
+// Evaluate timer updaters only after callbacks return, as React may do.
+let clock=1000;const queued:Array<(s:typeof initialState)=>typeof initialState>=[];
+const fire=createSimulationTimer(()=>clock,update=>queued.push(update));
+clock=1300;fire();clock=1600;fire();
+const advanced=queued.reduce((s,update)=>update(s),started);
+assert.ok(Math.abs(advanced.vacuum.route-.6/70)<1e-9);
+assert.ok(advanced.purifier.pm25<started.purifier.pm25);
+assert.notDeepEqual(pointOnRoute(advanced.vacuum.route),pointOnRoute(started.vacuum.route));
+console.log('Deferred timer updates advance robot coordinates and purifier readings.');

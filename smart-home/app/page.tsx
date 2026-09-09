@@ -5,12 +5,12 @@ import {Slider} from '@/components/ui/slider';
 import {Switch} from '@/components/ui/switch';
 import {Progress} from '@/components/ui/progress';
 import {Sheet,SheetContent,SheetHeader,SheetTitle,SheetDescription} from '@/components/ui/sheet';
-import {applyCommand,initialState,tick,modeLabels,type Command,type DeviceId,type SimState} from '@/lib/simulation';
+import {applyCommand,initialState,createSimulationTimer,modeLabels,type Command,type DeviceId,type SimState} from '@/lib/simulation';
 import RoomScene from './scene';
 const devices=[{id:'purifier' as const,name:'空氣清淨機',place:'窗邊',icon:Wind,type:'Matter · 空氣清淨機'},{id:'vacuum' as const,name:'掃地機器人',place:'入口',icon:CircleDot,type:'Matter · 掃地機器人'},{id:'hub' as const,name:'Google Nest Hub',place:'工作桌',icon:Monitor,type:'Google Home · 家庭中樞'}];
 export default function Home(){
  const [selected,setSelected]=useState<DeviceId|null>(null);const [state,setState]=useState<SimState>(initialState);const stateRef=useRef(state);stateRef.current=state;const [pending,setPending]=useState(false);const pendingRef=useRef(false);const [message,setMessage]=useState('選取模型中的設備，即可開始操作。');const [events,setEvents]=useState<string[]>([]);const [air,setAir]=useState(false);const [fanDraft,setFanDraft]=useState(40);const [volumeDraft,setVolumeDraft]=useState(35);const alive=useRef(true);
- useEffect(()=>{alive.current=true;let last=performance.now();const timer=setInterval(()=>{const now=performance.now();setState(s=>tick(s,(now-last)/1000));last=now},300);return ()=>{alive.current=false;clearInterval(timer)}},[]);
+ useEffect(()=>{alive.current=true;const timer=setInterval(createSimulationTimer(()=>performance.now(),setState),300);return ()=>{alive.current=false;clearInterval(timer)}},[]);
  const command=useCallback(async(c:Command)=>{
   if(pendingRef.current)throw Error('請等待上一個指令完成。');
   applyCommand(stateRef.current,c);pendingRef.current=true;setPending(true);setMessage('正在送出模擬指令…');
